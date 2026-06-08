@@ -2,6 +2,13 @@ with source as (
     select * from {{ source('bronze', 'property_raw') }}
 ),
 
+coalesced as (
+    select
+        *,
+        coalesce(sale_type, 'unknown') as sale_type_clean
+    from source
+),
+
 staged as (
     select
         transaction_id,
@@ -13,7 +20,7 @@ staged as (
         cast(sale_date as date)               as sale_date,
         cast(settlement_date as date)         as settlement_date,
         cast(days_on_market as integer)       as days_on_market,
-        coalesce(sale_type, 'unknown')        as sale_type,
+        sale_type_clean                       as sale_type,
         'bronze.property_raw'                 as record_source,
         cast(_loaded_at as timestamp)         as load_date,
 
@@ -28,9 +35,9 @@ staged as (
             cast(sale_date as text),
             cast(settlement_date as text),
             cast(days_on_market as text),
-            sale_type
+            sale_type_clean
         ))                                    as hashdiff
-    from source
+    from coalesced
     where transaction_id is not null
 )
 

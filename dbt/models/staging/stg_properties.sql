@@ -3,22 +3,23 @@ with source as (
 ),
 
 deduped as (
-    select distinct
+    select distinct on (property_id)
         property_id,
         address,
         suburb,
         postcode,
         state,
-        cast(bedrooms as integer)        as bedrooms,
-        cast(bathrooms as integer)       as bathrooms,
-        cast(land_size_sqm as numeric)   as land_size_sqm,
+        cast(bedrooms as integer)            as bedrooms,
+        cast(bathrooms as integer)           as bathrooms,
+        cast(land_size_sqm as numeric)       as land_size_sqm,
         property_type,
-        cast(year_built as integer)      as year_built,
+        cast(year_built as integer)          as year_built,
         cast(listing_price as numeric(14,2)) as listing_price,
-        cast(_loaded_at as timestamp)    as load_date,
-        'bronze.property_raw'            as record_source
+        cast(_loaded_at as timestamp)        as load_date,
+        'bronze.property_raw'                as record_source
     from source
     where property_id is not null
+    order by property_id, _loaded_at desc
 ),
 
 staged as (
