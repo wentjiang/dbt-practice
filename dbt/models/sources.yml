@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: property_raw
+      - name: src_crm_owners
+      - name: src_crm_agents

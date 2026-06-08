@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_transactions
+    columns:
+      - name: transaction_id
+        tests: [not_null, unique]
+      - name: transaction_hk
+        tests: [not_null, unique]
+      - name: property_id
+        tests: [not_null]
+      - name: sale_price
+        tests: [not_null]
+      - name: sale_date
+        tests: [not_null]
+
+  - name: stg_properties
+    columns:
+      - name: property_id
+        tests: [not_null, unique]
+      - name: property_hk
+        tests: [not_null, unique]
+      - name: suburb
+        tests: [not_null]
+
+  - name: stg_owners
+    columns:
+      - name: owner_id
+        tests: [not_null, unique]
+      - name: owner_hk
+        tests: [not_null, unique]
+
+  - name: stg_agents
+    columns:
+      - name: agent_id
+        tests: [not_null, unique]
+      - name: agent_hk
+        tests: [not_null, unique]
