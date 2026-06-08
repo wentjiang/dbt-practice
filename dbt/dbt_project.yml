@@ -1,0 +1,29 @@
+name: 'property_platform'
+version: '1.0.0'
+config-version: 2
+
+profile: 'property_platform'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+
+models:
+  property_platform:
+    staging:
+      +schema: silver
+      +materialized: view
+    vault:
+      hubs:
+        +schema: gold
+        +materialized: incremental
+        +unique_key: ['load_date']
+      links:
+        +schema: gold
+        +materialized: incremental
+      satellites:
+        +schema: gold
+        +materialized: incremental
+    mart:
+      +schema: mart
+      +materialized: table
