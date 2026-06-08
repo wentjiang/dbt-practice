@@ -29,9 +29,10 @@ with source as (
 
 {% if is_incremental() %}
 latest as (
-    select property_hk, hashdiff
+    select distinct on (property_hk) property_hk, hashdiff
     from {{ this }}
     where load_end_date is null
+    order by property_hk, load_date desc
 ),
 
 new_or_changed as (

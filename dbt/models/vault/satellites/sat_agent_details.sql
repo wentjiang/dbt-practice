@@ -28,9 +28,10 @@ with source as (
 
 {% if is_incremental() %}
 latest as (
-    select agent_hk, hashdiff
+    select distinct on (agent_hk) agent_hk, hashdiff
     from {{ this }}
     where load_end_date is null
+    order by agent_hk, load_date desc
 ),
 
 new_or_changed as (

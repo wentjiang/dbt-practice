@@ -28,9 +28,10 @@ with source as (
 
 {% if is_incremental() %}
 latest as (
-    select owner_hk, hashdiff
+    select distinct on (owner_hk) owner_hk, hashdiff
     from {{ this }}
     where load_end_date is null
+    order by owner_hk, load_date desc
 ),
 
 new_or_changed as (
