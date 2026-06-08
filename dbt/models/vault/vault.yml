@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: hub_property
+    columns:
+      - name: property_hk
+        tests: [not_null, unique]
+      - name: property_id
+        tests: [not_null, unique]
+
+  - name: hub_owner
+    columns:
+      - name: owner_hk
+        tests: [not_null, unique]
+
+  - name: hub_agent
+    columns:
+      - name: agent_hk
+        tests: [not_null, unique]
+
+  - name: hub_transaction
+    columns:
+      - name: transaction_hk
+        tests: [not_null, unique]
+
+  - name: lnk_transaction_property
+    columns:
+      - name: transaction_hk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('hub_transaction')
+              field: transaction_hk
+      - name: property_hk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('hub_property')
+              field: property_hk
+
+  - name: sat_property_details
+    columns:
+      - name: property_hk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('hub_property')
+              field: property_hk
+      - name: hashdiff
+        tests: [not_null]
+
+  - name: sat_owner_details
+    columns:
+      - name: owner_hk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('hub_owner')
+              field: owner_hk
+
+  - name: sat_agent_details
+    columns:
+      - name: agent_hk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('hub_agent')
+              field: agent_hk
+
+  - name: sat_transaction_details
+    columns:
+      - name: transaction_hk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('hub_transaction')
+              field: transaction_hk
