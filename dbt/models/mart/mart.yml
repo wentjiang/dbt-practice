@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: mart_property_sales
+    columns:
+      - name: transaction_id
+        tests: [not_null, unique]
+      - name: sale_price
+        tests: [not_null]
+      - name: suburb
+        tests: [not_null]
+
+  - name: mart_agent_performance
+    columns:
+      - name: agent_name
+        tests: [not_null, unique]
+      - name: total_transactions
+        tests: [not_null]
+
+  - name: mart_suburb_trends
+    columns:
+      - name: suburb
+        tests: [not_null]
+      - name: sale_month
+        tests: [not_null]
+
+  - name: mart_owner_portfolio
+    columns:
+      - name: owner_id
+        tests: [not_null, unique]
