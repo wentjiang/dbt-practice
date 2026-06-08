@@ -60,15 +60,20 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       DOCKER_HOST: unix:///var/run/docker.sock
+      DBT_PROJECT_PATH: /opt/airflow/dbt
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/data
+      - ./dbt:/opt/airflow/dbt
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+    # docker group gid — adjust if your host docker group uses a different gid
+    group_add:
+      - "999"
     command: >
       bash -c "airflow db migrate &&
                airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&

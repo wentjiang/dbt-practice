@@ -1,8 +1,10 @@
+import os
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.bash import BashOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
+
+DBT_PROJECT_PATH = os.environ.get('DBT_PROJECT_PATH', '/opt/airflow/dbt')
 
 default_args = {
     'owner': 'airflow',
@@ -45,8 +47,7 @@ with DAG(
         command='dbt run --profiles-dir /dbt',
         working_dir='/dbt',
         mounts=[
-            Mount(source='{{ var.value.get("dbt_project_path", "/opt/dbt") }}',
-                  target='/dbt', type='bind'),
+            Mount(source=DBT_PROJECT_PATH, target='/dbt', type='bind'),
         ],
         environment={
             'POSTGRES_HOST': 'postgres',
@@ -66,8 +67,7 @@ with DAG(
         command='dbt test --profiles-dir /dbt',
         working_dir='/dbt',
         mounts=[
-            Mount(source='{{ var.value.get("dbt_project_path", "/opt/dbt") }}',
-                  target='/dbt', type='bind'),
+            Mount(source=DBT_PROJECT_PATH, target='/dbt', type='bind'),
         ],
         environment={
             'POSTGRES_HOST': 'postgres',
