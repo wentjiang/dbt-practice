@@ -1,0 +1,40 @@
+<h2>How should Spark and PostgreSQL work together?</h2>
+<p class="subtitle">This shapes the entire architecture. Pick the role that matches what you want to learn.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Spark processes, PostgreSQL stores</h3>
+      <p>Raw data → Spark (dbt runs Spark SQL) → transformed results written to PostgreSQL → dashboard reads Postgres. Spark is the workhorse; Postgres is the final serving layer.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Realistic data engineering pipeline</li><li>Learn both Spark and Postgres</li><li>Dashboard queries are fast (Postgres)</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More moving parts to configure</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Spark only (with Spark's built-in warehouse)</h3>
+      <p>Raw data → Spark processes everything → dbt models stored in Delta Lake / Spark warehouse → dashboard reads Spark directly. PostgreSQL not used.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Simpler — one engine, one storage</li><li>Best for learning dbt + Spark together</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>No Postgres experience</li><li>Dashboard setup is more complex</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>PostgreSQL primary, Spark for heavy transforms</h3>
+      <p>dbt runs mostly against PostgreSQL; Spark is called only for specific heavy transformations. Most of the Data Vault / SCD Type 2 logic lives in Postgres.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Simpler dbt setup (postgres adapter is mature)</li><li>Easier to debug and iterate</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Less Spark practice</li><li>Spark feels bolted-on</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

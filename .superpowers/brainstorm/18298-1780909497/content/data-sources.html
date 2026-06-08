@@ -1,0 +1,36 @@
+<h2>What are the multiple data sources?</h2>
+<p class="subtitle">This determines how the ingestion (Bronze) layer is structured</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>CSV / flat files</h3>
+      <p>Static files simulating exports from different systems — e.g. one CSV for transactions, another for property attributes from a different vendor</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Multiple PostgreSQL schemas / tables</h3>
+      <p>Simulate different source systems as separate schemas in the same Postgres instance — e.g. <code>src_agent_system</code> and <code>src_listings_portal</code></p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>REST API (simulated)</h3>
+      <p>A small mock API (e.g. FastAPI in Docker) that returns property data — ingested via a Python script into the raw layer</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="d" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Mix: CSV + PostgreSQL schemas</h3>
+      <p>Most realistic for learning — one source as CSV files (e.g. property attributes from a data provider), another as a live DB schema (e.g. transaction system)</p>
+    </div>
+  </div>
+</div>
