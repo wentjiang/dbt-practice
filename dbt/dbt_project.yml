@@ -17,7 +17,6 @@ models:
       hubs:
         +schema: gold
         +materialized: incremental
-        +unique_key: ['load_date']
       links:
         +schema: gold
         +materialized: incremental
