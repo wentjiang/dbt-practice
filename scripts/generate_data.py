@@ -2,7 +2,7 @@ import uuid
 import random
 import pandas as pd
 from faker import Faker
-from faker.providers import address, internet, phone_number
+from datetime import date, timedelta
 import psycopg2
 import os
 
@@ -82,17 +82,22 @@ def generate_agents(n: int = 100) -> pd.DataFrame:
 
 def generate_transactions(n: int, properties: pd.DataFrame,
                            owners: pd.DataFrame, agents: pd.DataFrame) -> pd.DataFrame:
+    if len(owners) < 2:
+        raise ValueError("owners DataFrame must have at least 2 rows")
     property_ids = properties['property_id'].tolist()
     owner_ids = owners['owner_id'].tolist()
     agent_ids = agents['agent_id'].tolist()
+    listing_prices = properties['listing_price'].tolist()
     records = []
     for _ in range(n):
         sale_date = fake.date_between(start_date='-5y', end_date='today')
         days_on_market = random.randint(3, 180)
-        listing_price = float(properties.sample(1)['listing_price'].iloc[0])
+        listing_price = float(random.choice(listing_prices))
         sale_price = listing_price * random.uniform(0.85, 1.15)
         buyer_id = random.choice(owner_ids)
-        seller_id = random.choice([o for o in owner_ids if o != buyer_id])
+        buyer_idx = owner_ids.index(buyer_id)
+        seller_idx = random.choice([i for i in range(len(owner_ids)) if i != buyer_idx])
+        seller_id = owner_ids[seller_idx]
         records.append({
             'transaction_id': str(uuid.uuid4()),
             'property_id': random.choice(property_ids),
@@ -103,7 +108,7 @@ def generate_transactions(n: int, properties: pd.DataFrame,
             'agent_id': random.choice(agent_ids),
             'sale_type': random.choice(SALE_TYPES),
             'settlement_date': fake.date_between(
-                start_date=sale_date, end_date='+90d').isoformat(),
+                start_date=sale_date, end_date=sale_date + timedelta(days=90)).isoformat(),
             'days_on_market': days_on_market,
         })
     return pd.DataFrame(records)
@@ -115,38 +120,41 @@ def build_raw_csv(transactions: pd.DataFrame, properties: pd.DataFrame) -> pd.Da
 
 def seed_src_crm(owners: pd.DataFrame, agents: pd.DataFrame, conn_params: dict) -> None:
     conn = psycopg2.connect(**conn_params)
-    cur = conn.cursor()
-    cur.execute("SET search_path TO src_crm")
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS src_crm.owners (
-            owner_id TEXT PRIMARY KEY,
-            full_name TEXT, email TEXT, phone TEXT,
-            suburb TEXT, state TEXT,
-            registration_date DATE, investor_flag BOOLEAN
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS src_crm.agents (
-            agent_id TEXT PRIMARY KEY,
-            full_name TEXT, email TEXT, agency_name TEXT,
-            license_no TEXT, region TEXT,
-            accreditation_tier TEXT, active_from DATE
-        )
-    """)
-    cur.execute("TRUNCATE src_crm.owners, src_crm.agents")
-    for _, row in owners.iterrows():
+    try:
+        cur = conn.cursor()
+        cur.execute("CREATE SCHEMA IF NOT EXISTS src_crm")
+        cur.execute("SET search_path TO src_crm")
         cur.execute("""
-            INSERT INTO src_crm.owners VALUES
-            (%s,%s,%s,%s,%s,%s,%s,%s)
-        """, tuple(row))
-    for _, row in agents.iterrows():
+            CREATE TABLE IF NOT EXISTS src_crm.owners (
+                owner_id TEXT PRIMARY KEY,
+                full_name TEXT, email TEXT, phone TEXT,
+                suburb TEXT, state TEXT,
+                registration_date DATE, investor_flag BOOLEAN
+            )
+        """)
         cur.execute("""
-            INSERT INTO src_crm.agents VALUES
-            (%s,%s,%s,%s,%s,%s,%s,%s)
-        """, tuple(row))
-    conn.commit()
-    cur.close()
-    conn.close()
+            CREATE TABLE IF NOT EXISTS src_crm.agents (
+                agent_id TEXT PRIMARY KEY,
+                full_name TEXT, email TEXT, agency_name TEXT,
+                license_no TEXT, region TEXT,
+                accreditation_tier TEXT, active_from DATE
+            )
+        """)
+        cur.execute("TRUNCATE src_crm.owners, src_crm.agents")
+        for _, row in owners.iterrows():
+            cur.execute("""
+                INSERT INTO src_crm.owners VALUES
+                (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, tuple(row))
+        for _, row in agents.iterrows():
+            cur.execute("""
+                INSERT INTO src_crm.agents VALUES
+                (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, tuple(row))
+        conn.commit()
+        cur.close()
+    finally:
+        conn.close()
 
 
 if __name__ == '__main__':

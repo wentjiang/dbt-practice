@@ -1,9 +1,10 @@
 import pandas as pd
 import pytest
 import sys
-sys.path.insert(0, 'scripts')
+import pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'scripts'))
 
-from generate_data import generate_properties, generate_transactions, generate_owners, generate_agents
+from generate_data import generate_properties, generate_transactions, generate_owners, generate_agents, build_raw_csv
 
 def test_generate_properties_returns_dataframe():
     df = generate_properties(n=10)
@@ -41,7 +42,7 @@ def test_raw_csv_has_all_columns():
     owners = generate_owners(n=5)
     agents = generate_agents(n=5)
     txns = generate_transactions(n=10, properties=props, owners=owners, agents=agents)
-    raw = txns.merge(props, on='property_id', how='left')
+    raw = build_raw_csv(txns, props)
     expected_tx = {'transaction_id','sale_price','sale_date','buyer_id','seller_id'}
     expected_prop = {'address','suburb','postcode','bedrooms','bathrooms'}
     assert expected_tx.issubset(set(raw.columns))
