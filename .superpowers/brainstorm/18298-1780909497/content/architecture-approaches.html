@@ -1,0 +1,45 @@
+<h2>How should dbt + Spark integrate?</h2>
+<p class="subtitle">This is the core architectural decision. Each approach has a different learning focus.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>dbt-spark adapter → Spark Thrift Server → PostgreSQL</h3>
+      <p>dbt uses the <strong>dbt-spark</strong> adapter and talks to a Spark Thrift Server (JDBC). Spark reads raw files, runs all dbt models, stores results in Delta/Parquet. A final export step pushes mart tables to PostgreSQL for Superset.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Most "authentic" dbt + Spark experience</li><li>All dbt models run on Spark SQL</li><li>Learn dbt-spark adapter patterns</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Thrift Server adds Docker complexity</li><li>Slightly harder to debug</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Spark for ingestion, dbt-postgres for transforms</h3>
+      <p>A <strong>PySpark ingestion script</strong> reads CSVs + Postgres source schemas and loads raw data into a PostgreSQL <code>raw</code> schema. Then <strong>dbt uses the postgres adapter</strong> to run all Medallion / Data Vault / SCD logic in Postgres.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Simplest Docker setup</li><li>dbt-postgres adapter is most mature</li><li>Easier to debug transforms</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>dbt doesn't actually touch Spark — less Spark/dbt integration practice</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Spark Connect (Spark 3.4+) → dbt-spark → PostgreSQL</h3>
+      <p>Use the modern <strong>Spark Connect</strong> protocol instead of Thrift Server. A lightweight Spark Connect server runs in Docker; dbt-spark connects to it. Final mart tables are written to PostgreSQL for Superset. Cleaner than Thrift but newer.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Modern Spark architecture (Spark 3.4+)</li><li>Lighter than Thrift Server</li><li>Full dbt + Spark integration</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>dbt-spark + Spark Connect is still maturing</li><li>Fewer community examples for learning</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:2rem;padding:1rem;background:var(--surface-2,#f5f5f5);border-radius:8px">
+  <p class="label">My recommendation</p>
+  <p><strong>Option A</strong> — dbt-spark via Thrift Server is the most widely documented pattern for learning. More tutorials, more examples, and you get genuine dbt+Spark integration experience. The Thrift Server Docker image is well-established.</p>
+</div>
