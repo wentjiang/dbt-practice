@@ -1,0 +1,96 @@
+version: '3.8'
+
+x-postgres-env: &postgres-env
+  POSTGRES_HOST: ${POSTGRES_HOST}
+  POSTGRES_PORT: ${POSTGRES_PORT}
+  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+
+  spark-ingest:
+    build: ./spark
+    environment:
+      <<: *postgres-env
+    volumes:
+      - ./data:/data
+      - ./spark/ingest.py:/app/ingest.py
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["spark-submit", "--packages", "org.postgresql:postgresql:42.7.1", "/app/ingest.py"]
+    profiles: ["ingest"]
+
+  dbt:
+    build: ./dbt
+    environment:
+      <<: *postgres-env
+    volumes:
+      - ./dbt:/dbt
+    working_dir: /dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["dbt"]
+
+  airflow:
+    build: ./airflow
+    environment:
+      <<: *postgres-env
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&
+               airflow scheduler &
+               airflow webserver"
+
+  superset:
+    image: apache/superset:3.1.0
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./superset/init.sh:/app/init.sh
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "superset db upgrade &&
+               superset fab create-admin --username admin --firstname Admin --lastname User --email admin@example.com --password admin &&
+               superset init &&
+               /app/init.sh &&
+               superset run -p 8088 --with-threads --reload --debugger"
+
+volumes:
+  postgres_data:
