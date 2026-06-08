@@ -25,12 +25,13 @@ services:
       retries: 10
 
   spark-ingest:
-    build: ./spark
+    build:
+      context: .
+      dockerfile: spark/Dockerfile
     environment:
       <<: *postgres-env
     volumes:
       - ./data:/data
-      - ./spark/ingest.py:/app/ingest.py
     depends_on:
       postgres:
         condition: service_healthy
