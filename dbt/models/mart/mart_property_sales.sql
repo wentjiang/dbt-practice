@@ -3,7 +3,17 @@
 }}
 
 with transactions as (
-    select * from {{ ref('hub_transaction') }} ht
+    select
+        ht.transaction_hk,
+        ht.transaction_id,
+        std.sale_price,
+        std.sale_date,
+        std.settlement_date,
+        std.days_on_market,
+        std.sale_type,
+        std.load_date,
+        std.record_source
+    from {{ ref('hub_transaction') }} ht
     join {{ ref('sat_transaction_details') }} std
         on ht.transaction_hk = std.transaction_hk
         and std.load_end_date is null
@@ -55,6 +65,8 @@ select
     p.bedrooms,
     p.bathrooms,
     p.land_size_sqm,
+    p.postcode,
+    p.year_built,
     p.listing_price,
     round(100.0 * (t.sale_price - p.listing_price) / p.listing_price, 2) as price_vs_listing_pct,
     a.agent_name,

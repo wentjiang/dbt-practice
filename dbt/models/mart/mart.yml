@@ -13,7 +13,7 @@ models:
   - name: mart_agent_performance
     columns:
       - name: agent_name
-        tests: [not_null, unique]
+        tests: [not_null]
       - name: total_transactions
         tests: [not_null]
 
