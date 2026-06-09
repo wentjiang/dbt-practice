@@ -17,3 +17,4 @@
 {"source":"user-event","type":"click","text":"B\n    \n      Spark for ingestion, dbt-postgres for transforms\n      A PySpark ingestion script reads CSVs + Postgres source schemas and loads raw data into a PostgreSQL raw schema. Then dbt uses the postgres adapter to run all Medallion / Data Vault / SCD logic in Postgres.\n      \n        ProsSimplest Docker setupdbt-postgres adapter is most matureEasier to debug transforms\n        Consdbt doesn't actually touch Spark — less Spark/dbt integration practice","choice":"b","id":null,"timestamp":1780910982870}
 {"type":"screen-added","file":"/Users/wentao.jiang/myspace/dbt-practice/.superpowers/brainstorm/18298-1780909497/content/full-architecture.html"}
 {"type":"screen-added","file":"/Users/wentao.jiang/myspace/dbt-practice/.superpowers/brainstorm/18298-1780909497/content/waiting-3.html"}
+{"type":"server-stopped","reason":"idle timeout"}
